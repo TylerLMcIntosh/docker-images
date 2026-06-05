@@ -9,7 +9,8 @@ echo "--------------------------------------------------------"
 
 # Run Docker interactively (-it), mounting the volume, and launching 'R'
 docker run --rm -it \
-  --user "$(id -u):$(id -g)" \
+-e USERID=$(id -u) \
+  -e GROUPID=$(id -g) \
   -v "${DEV_DIR}:${CONTAINER_DEV_DIR}" \
   -w $CONTAINER_DEV_DIR \
   $IMAGE \

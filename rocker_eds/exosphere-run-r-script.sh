@@ -23,7 +23,8 @@ echo "--------------------------------------------------------"
 
 # 2. Run Docker, map the volume, and execute Rscript
 docker run --rm \
-  --user "$(id -u):$(id -g)" \
+  -e USERID=$(id -u) \
+  -e GROUPID=$(id -g) \
   -v "${DEV_DIR}:${CONTAINER_DEV_DIR}" \
   -w $CONTAINER_DEV_DIR \
   $IMAGE \

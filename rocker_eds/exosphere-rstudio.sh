@@ -9,9 +9,10 @@ URL="http://localhost:${HOST_PORT}"
 # 1. Start the Docker container in the background
 echo "Starting Rocker RStudio container..."
 docker run -d --rm \
-  --user "$(id -u):$(id -g)" \
   -p ${HOST_PORT}:8787 \
   -e PASSWORD=$PASSWORD \
+  -e USERID=$(id -u) \
+  -e GROUPID=$(id -g) \
   -v "${DEV_DIR}:${CONTAINER_DEV_DIR}" \
   -w $CONTAINER_DEV_DIR \
   $IMAGE
