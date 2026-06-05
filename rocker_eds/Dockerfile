@@ -1,8 +1,13 @@
 FROM rocker/geospatial:4.6
 
+EXPOSE 8787
+
 ARG CRAN_SNAPSHOT=2026-05-01
 ENV CRAN_REPO=https://packagemanager.posit.co/cran/${CRAN_SNAPSHOT}
 ENV RSPM=${CRAN_REPO}
+
+# Set CRAN repo for interactive R
+RUN echo "options(repos = c(CRAN = Sys.getenv('CRAN_REPO')))" >> /usr/local/lib/R/etc/Rprofile.site
 
 #GH identity
 RUN git config --system user.name "Tyler McIntosh" && \
@@ -15,12 +20,17 @@ RUN apt-get update && \
         curl \
         ca-certificates \
         cmake \
+        unzip \
         pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
 # GoCommands for CyVerse
-RUN curl -fsSL https://raw.githubusercontent.com/cyverse/gocommands/main/install_gocmd.sh | bash
-
+#RUN curl -fsSL https://raw.githubusercontent.com/cyverse/gocommands/main/install_gocmd.sh | bash
+RUN curl -fsSL https://raw.githubusercontent.com/cyverse/gocommands/main/install_gocmd.sh | bash && \
+    cp /gocmd /usr/local/bin/gocmd && \
+    chmod +x /usr/local/bin/gocmd && \
+    command -v gocmd && \
+    gocmd --help
 
 # Additional R packages; this dockerfile orders blocks from core to discretionary to enable layer caching
 
