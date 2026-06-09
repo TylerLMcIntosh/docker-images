@@ -24,32 +24,54 @@ RUN apt-get update && \
         pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
-# GoCommands for CyVerse
-#RUN curl -fsSL https://raw.githubusercontent.com/cyverse/gocommands/main/install_gocmd.sh | bash
-RUN curl -fsSL https://raw.githubusercontent.com/cyverse/gocommands/main/install_gocmd.sh | bash && \
-    cp /gocmd /usr/local/bin/gocmd && \
-    chmod +x /usr/local/bin/gocmd && \
-    command -v gocmd && \
-    gocmd --help
-
 # Additional R packages; this dockerfile orders blocks from core to discretionary to enable layer caching
 
-## Standards
-RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
+## Core workflow utilities
+RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1 \
     here \
-    tictoc \
+    fs \
+    cli \
+    glue \
+    withr \
+    yaml \
+    jsonlite \
+    sessioninfo \
+    conflicted \
     remotes \
-    janitor \
-    googledrive \
+    pak \
+    renv \
+    tictoc \
+    dplyr \
+    tidyr \
+    purrr \
+    tibble \
+    stringr && \
+    rm -rf /tmp/downloaded_packages
+
+## Data I/O
+RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1 \
+    readr \
+    vroom \
+    readxl \
+    writexl \
     arrow \
     data.table \
-    performance \
+    googledrive \
+    httr2 \
+    curl && \
+    rm -rf /tmp/downloaded_packages
+
+## General statistics/helpers
+RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1 \
+    janitor \
     lubridate \
+    performance \
     see \
     insight \
     psych \
     DescTools && \
     rm -rf /tmp/downloaded_packages
+
 
 ## Visualization core
 RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
@@ -117,6 +139,18 @@ RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
     tuneRanger && \
     rm -rf /tmp/downloaded_packages
 
+## Workflow orchestration / pipeline management
+RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1 \
+    targets \
+    tarchetypes \
+    progressr && \
+    rm -rf /tmp/downloaded_packages
+
+# add crewing for parallel processing with targest; add if regularly using
+    # crew \
+    # crew.cluster \
+    # callr 
+
 ## Convenience / specific use case
 RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
     ggridges \
@@ -137,6 +171,7 @@ RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
 ## Heavy / specific use case spatial
 RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
     gdalcubes \
+    h3jsr \
     spmodel && \
     rm -rf /tmp/downloaded_packages
 
@@ -155,3 +190,11 @@ RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
 #     posterior \
 #     bayesplot && \
 #    rm -rf /tmp/downloaded_packages
+
+
+# GoCommands for CyVerse
+#RUN curl -fsSL https://raw.githubusercontent.com/cyverse/gocommands/main/install_gocmd.sh | bash
+RUN curl -fsSL https://raw.githubusercontent.com/cyverse/gocommands/main/install_gocmd.sh | bash && \
+    cp /gocmd /usr/local/bin/gocmd && \
+    chmod +x /usr/local/bin/gocmd && \
+    command -v gocmd

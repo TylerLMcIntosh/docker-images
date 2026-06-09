@@ -1,7 +1,7 @@
 #!/bin/bash
 IMAGE="tylerlmcintosh/rocker_eds:4.6-cran20260501"
 HOST_PORT=8787
-DEV_DIR="/media/volume/test-volume"
+DEV_DIR="/media/volume/working-volume"
 CONTAINER_DEV_DIR="/home/rstudio/dev"
 PASSWORD="123"
 URL="http://localhost:${HOST_PORT}"

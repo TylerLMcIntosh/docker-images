@@ -6,7 +6,7 @@
 
 #!/bin/bash
 IMAGE="tylerlmcintosh/rocker_eds:4.6-cran20260501"
-DEV_DIR="/media/volume/test-volume"
+DEV_DIR="/media/volume/working-volume"
 CONTAINER_DEV_DIR="/home/rstudio/dev"
 
 # 1. Check if the user provided a script name argument
