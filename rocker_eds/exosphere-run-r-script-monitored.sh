@@ -44,6 +44,9 @@ docker run --rm \
   -w "$CONTAINER_DEV_DIR/$PROJECT_SUBDIR" \
   $IMAGE \
   bash -c "
+
+    umask 000
+
     # create log directory if it doesn't exist (absolute path so it
     # works regardless of working directory)
     mkdir -p '$CONTAINER_DEV_DIR/$LOG_DIR'
@@ -55,6 +58,10 @@ docker run --rm \
 
     # launch monitor in background (absolute paths for both monitor
     # script and log file so they resolve from any working directory)
+
+    echo "Monitor script path: '$CONTAINER_DEV_DIR/$MONITOR_SCRIPT'"
+    echo "Log file path: '$CONTAINER_DEV_DIR/$LOG_NAME'"
+
     bash '$CONTAINER_DEV_DIR/$MONITOR_SCRIPT' \$R_PID '$CONTAINER_DEV_DIR/$LOG_NAME' '$INTERVAL' &
     MON_PID=\$!
 
