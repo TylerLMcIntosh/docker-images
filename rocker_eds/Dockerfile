@@ -45,6 +45,7 @@ RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1 \
     tidyr \
     purrr \
     tibble \
+    forcats \
     stringr && \
     rm -rf /tmp/downloaded_packages
 
@@ -80,6 +81,7 @@ RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
     viridis \
     scico \
     gt \
+    gridExtra \
     tinytable && \
     rm -rf /tmp/downloaded_packages
     #ComplexHeatmap \
@@ -91,6 +93,7 @@ RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
     cobalt \
     MatchIt \
     fect \
+    grf \
     did && \
     rm -rf /tmp/downloaded_packages
 
@@ -118,6 +121,7 @@ RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
 RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
     spatialsample \
     tigris \
+    h3jsr \
     exactextractr && \
     rm -rf /tmp/downloaded_packages
 
@@ -133,6 +137,8 @@ RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
     vip \
     pdp \
     fastshap \
+    kernelshap \
+    hstats \
     shapviz \
     dials \
     xgboost \
@@ -171,7 +177,6 @@ RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
 ## Heavy / specific use case spatial
 RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
     gdalcubes \
-    h3jsr \
     spmodel && \
     rm -rf /tmp/downloaded_packages
 
@@ -191,6 +196,9 @@ RUN install2.r --error --repos ${CRAN_REPO} --skipinstalled --ncpus -1  \
 #     bayesplot && \
 #    rm -rf /tmp/downloaded_packages
 
+# Github packages
+RUN R -q -e 'remotes::install_github("grf-labs/sufrep@317be9e73f828aee1a3d5333dfd2dd4594c81607", upgrade = "never")' && \
+    rm -rf /tmp/downloaded_packages
 
 # GoCommands for CyVerse
 #RUN curl -fsSL https://raw.githubusercontent.com/cyverse/gocommands/main/install_gocmd.sh | bash
