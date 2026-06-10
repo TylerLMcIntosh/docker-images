@@ -59,8 +59,8 @@ docker run --rm \
     # launch monitor in background (absolute paths for both monitor
     # script and log file so they resolve from any working directory)
 
-    echo "Monitor script path: '$CONTAINER_DEV_DIR/$MONITOR_SCRIPT'"
-    echo "Log file path: '$CONTAINER_DEV_DIR/$LOG_NAME'"
+    echo "Monitor script path: $CONTAINER_DEV_DIR/$MONITOR_SCRIPT"
+    echo "Log file path: $CONTAINER_DEV_DIR/$LOG_NAME"
 
     bash '$CONTAINER_DEV_DIR/$MONITOR_SCRIPT' \$R_PID '$CONTAINER_DEV_DIR/$LOG_NAME' '$INTERVAL' &
     MON_PID=\$!
