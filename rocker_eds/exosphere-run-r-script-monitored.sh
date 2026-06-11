@@ -5,7 +5,7 @@
 # Arguments:
 #   $1  R script to run (relative to project_subdir)
 #   $2  Monitor interval in seconds (default: 10)
-#   $3  Path to monitor-resources.sh (relative to DEV_DIR, default: docker-images/rocker_eds/monitor-resources.sh)
+#   $3  Path to monitor-resources.sh (relative to DEV_DIR, default: docker-images/monitor-resources.sh)
 #   $4  Directory for log outputs (relative to DEV_DIR, default: compound-disturbance-resilience/logs)
 #   $5  Project subdirectory within DEV_DIR (default: compound-disturbance-resilience)
 
@@ -21,7 +21,7 @@ fi
 
 SCRIPT_NAME="$1"
 INTERVAL=${2:-10}
-MONITOR_SCRIPT=${3:-docker-images/rocker_eds/monitor-resources.sh}
+MONITOR_SCRIPT=${3:-docker-images/monitor-resources.sh}
 LOG_DIR=${4:-compound-disturbance-resilience/logs}
 PROJECT_SUBDIR=${5:-compound-disturbance-resilience}
 
@@ -58,9 +58,6 @@ docker run --rm \
 
     # launch monitor in background (absolute paths for both monitor
     # script and log file so they resolve from any working directory)
-
-    echo "Monitor script path: $CONTAINER_DEV_DIR/$MONITOR_SCRIPT"
-    echo "Log file path: $CONTAINER_DEV_DIR/$LOG_NAME"
 
     bash '$CONTAINER_DEV_DIR/$MONITOR_SCRIPT' \$R_PID '$CONTAINER_DEV_DIR/$LOG_NAME' '$INTERVAL' &
     MON_PID=\$!
