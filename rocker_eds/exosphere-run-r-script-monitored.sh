@@ -2,44 +2,126 @@
 # exosphere-run-r-script-monitored.sh
 #
 # Usage:
-# ./exosphere-run-r-script-monitored.sh \
-#   <script.R> \
-#   [interval_seconds] \
-#   [monitor_script] \
-#   [log_dir] \
-#   [project_subdir] \
-#   [dev_dir]
+#   ./exosphere-run-r-script-monitored.sh --script <script.R> [options]
 #
-# Arguments:
-#   $1  R script to run, relative to project_subdir
-#   $2  Monitor interval in seconds
-#       Default: 10
-#   $3  Path to monitor-resources.sh, relative to DEV_DIR
-#       Default: docker-images/monitor-resources.sh
-#   $4  Directory for log outputs, relative to DEV_DIR
-#       Default: compound-disturbance-resilience/logs
-#   $5  Project subdirectory within DEV_DIR
-#       Default: compound-disturbance-resilience
-#   $6  Host development directory mounted into the container
-#       Default: /media/volume/working-volume
+# Required:
+#   --script <path>             R script relative to project_subdir
+#
+# Optional:
+#   --interval <seconds>        Monitoring interval
+#                               Default: 10
+#   --monitor-script <path>     Monitor script relative to dev_dir
+#                               Default: docker-images/monitor-resources.sh
+#   --log-dir <path>            Log directory relative to dev_dir
+#                               Default: compound-disturbance-resilience/logs
+#   --project-subdir <path>     Project directory relative to dev_dir
+#                               Default: compound-disturbance-resilience
+#   --dev-dir <path>            Host directory mounted into the container
+#                               Default: /media/volume/working-volume
+#   --help                      Display this help message
 
 IMAGE="tylerlmcintosh/rocker_eds:4.6-cran20260501"
 CONTAINER_DEV_DIR="/home/rstudio/dev"
 
-if [ -z "$1" ]; then
-  echo "Error: Please specify the R script you want to run."
-  echo "Usage: ./exosphere-run-r-script-monitored.sh <script.R> [interval_seconds] [monitor_script] [log_dir] [project_subdir] [dev_dir]"
+# Defaults
+SCRIPT_NAME=""
+INTERVAL=10
+MONITOR_SCRIPT="docker-images/monitor-resources.sh"
+LOG_DIR="compound-disturbance-resilience/logs"
+PROJECT_SUBDIR="compound-disturbance-resilience"
+DEV_DIR="/media/volume/working-volume"
+
+print_usage() {
+  sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+# Parse named arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --script)
+      [[ $# -ge 2 ]] || {
+        echo "Error: --script requires a value." >&2
+        exit 1
+      }
+      SCRIPT_NAME="$2"
+      shift 2
+      ;;
+
+    --interval)
+      [[ $# -ge 2 ]] || {
+        echo "Error: --interval requires a value." >&2
+        exit 1
+      }
+      INTERVAL="$2"
+      shift 2
+      ;;
+
+    --monitor-script)
+      [[ $# -ge 2 ]] || {
+        echo "Error: --monitor-script requires a value." >&2
+        exit 1
+      }
+      MONITOR_SCRIPT="$2"
+      shift 2
+      ;;
+
+    --log-dir)
+      [[ $# -ge 2 ]] || {
+        echo "Error: --log-dir requires a value." >&2
+        exit 1
+      }
+      LOG_DIR="$2"
+      shift 2
+      ;;
+
+    --project-subdir)
+      [[ $# -ge 2 ]] || {
+        echo "Error: --project-subdir requires a value." >&2
+        exit 1
+      }
+      PROJECT_SUBDIR="$2"
+      shift 2
+      ;;
+
+    --dev-dir)
+      [[ $# -ge 2 ]] || {
+        echo "Error: --dev-dir requires a value." >&2
+        exit 1
+      }
+      DEV_DIR="$2"
+      shift 2
+      ;;
+
+    --help|-h)
+      print_usage
+      exit 0
+      ;;
+
+    *)
+      echo "Error: Unknown argument: $1" >&2
+      echo "Run '$0 --help' for usage." >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "$SCRIPT_NAME" ]]; then
+  echo "Error: --script is required." >&2
+  echo "Run '$0 --help' for usage." >&2
   exit 1
 fi
 
-SCRIPT_NAME="$1"
-INTERVAL="${2:-10}"
-MONITOR_SCRIPT="${3:-docker-images/monitor-resources.sh}"
-LOG_DIR="${4:-compound-disturbance-resilience/logs}"
-PROJECT_SUBDIR="${5:-compound-disturbance-resilience}"
-DEV_DIR="${6:-/media/volume/working-volume}"
+# Basic validation
+if ! [[ "$INTERVAL" =~ ^[1-9][0-9]*$ ]]; then
+  echo "Error: --interval must be a positive integer." >&2
+  exit 1
+fi
 
-# Derive log filename from script name and place it in the log directory.
+if [[ ! -d "$DEV_DIR" ]]; then
+  echo "Error: Development directory does not exist: $DEV_DIR" >&2
+  exit 1
+fi
+
 SCRIPT_BASENAME=$(basename "${SCRIPT_NAME%.R}")
 LOG_NAME="${LOG_DIR}/${SCRIPT_BASENAME}_resource_log.csv"
 
@@ -57,33 +139,29 @@ docker run --rm \
   -e USERID="$(id -u)" \
   -e GROUPID="$(id -g)" \
   -v "${DEV_DIR}:${CONTAINER_DEV_DIR}" \
-  -w "$CONTAINER_DEV_DIR/$PROJECT_SUBDIR" \
+  -w "${CONTAINER_DEV_DIR}/${PROJECT_SUBDIR}" \
   "$IMAGE" \
   bash -c "
     umask 000
 
-    # Create log directory if it does not exist.
-    mkdir -p '$CONTAINER_DEV_DIR/$LOG_DIR'
+    mkdir -p '${CONTAINER_DEV_DIR}/${LOG_DIR}'
 
-    # Launch R in the background.
-    Rscript '$SCRIPT_NAME' &
+    Rscript '${SCRIPT_NAME}' &
     R_PID=\$!
     echo \"R process started with PID \$R_PID\"
 
-    # Launch resource monitor in the background.
-    bash '$CONTAINER_DEV_DIR/$MONITOR_SCRIPT' \
+    bash '${CONTAINER_DEV_DIR}/${MONITOR_SCRIPT}' \
       \$R_PID \
-      '$CONTAINER_DEV_DIR/$LOG_NAME' \
-      '$INTERVAL' &
+      '${CONTAINER_DEV_DIR}/${LOG_NAME}' \
+      '${INTERVAL}' &
     MON_PID=\$!
 
-    # Wait for R to finish and capture its exit code.
     wait \$R_PID
     R_EXIT=\$?
 
-    # Give the monitor one final interval, then stop it.
-    sleep '$INTERVAL'
+    sleep '${INTERVAL}'
     kill \$MON_PID 2>/dev/null
+    wait \$MON_PID 2>/dev/null
 
     echo \"R exited with code \$R_EXIT\"
     exit \$R_EXIT
